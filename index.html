@@ -1,0 +1,853 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#0d0d0d" />
+  <title>California Post — iOS Promo</title>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+  <style>
+    :root {
+      color-scheme: dark;
+      font-family: Inter, "Helvetica Neue", Arial, sans-serif;
+      background: #050505;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #050505;
+    }
+
+    body {
+      position: relative;
+    }
+
+    button {
+      font: inherit;
+    }
+
+    #stage-shell {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 1080px;
+      height: 1920px;
+      transform-origin: 0 0;
+    }
+
+    #root {
+      position: relative;
+      width: 1080px;
+      height: 1920px;
+      overflow: hidden;
+      isolation: isolate;
+      background: #0d0d0d;
+      opacity: 0;
+    }
+
+    /* Background */
+    #bg-layer {
+      position: absolute;
+      inset: 0;
+      z-index: 0;
+      overflow: hidden;
+    }
+
+    #glow-ambient {
+      position: absolute;
+      left: 110px;
+      top: 530px;
+      width: 860px;
+      height: 860px;
+      border-radius: 50%;
+      background: radial-gradient(
+        circle,
+        rgba(202, 255, 93, 0.18) 0%,
+        rgba(202, 255, 93, 0.04) 55%,
+        transparent 75%
+      );
+      pointer-events: none;
+      will-change: transform;
+    }
+
+    #glow-burst {
+      position: absolute;
+      left: 240px;
+      top: 660px;
+      width: 600px;
+      height: 600px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(202, 255, 93, 0.55) 0%, transparent 65%);
+      opacity: 0;
+      pointer-events: none;
+      will-change: transform, opacity;
+    }
+
+    #bg-watermark {
+      position: absolute;
+      left: 0;
+      top: 50%;
+      width: 1080px;
+      height: auto;
+      opacity: 0.15;
+      filter: blur(15px);
+      transform: translateY(-50%);
+      pointer-events: none;
+    }
+
+    #hairline-top,
+    #hairline-bottom {
+      position: absolute;
+      left: 60px;
+      right: 60px;
+      height: 2px;
+      background: rgba(174, 232, 26, 0.35);
+      transform-origin: left center;
+      will-change: transform;
+    }
+
+    #hairline-top {
+      top: 96px;
+    }
+
+    #hairline-bottom {
+      bottom: 96px;
+    }
+
+    .corner-mark {
+      position: absolute;
+      width: 28px;
+      height: 28px;
+      opacity: 0.22;
+    }
+
+    .corner-mark::before,
+    .corner-mark::after {
+      position: absolute;
+      content: "";
+      background: #aae81a;
+    }
+
+    .corner-mark::before {
+      left: 13px;
+      top: 0;
+      width: 2px;
+      height: 28px;
+    }
+
+    .corner-mark::after {
+      left: 0;
+      top: 13px;
+      width: 28px;
+      height: 2px;
+    }
+
+    #cm-tl {
+      top: 80px;
+      left: 44px;
+    }
+
+    #cm-tr {
+      top: 80px;
+      right: 44px;
+    }
+
+    #cm-bl {
+      bottom: 80px;
+      left: 44px;
+    }
+
+    #cm-br {
+      right: 44px;
+      bottom: 80px;
+    }
+
+    /* App card */
+    #app-card-wrap {
+      position: absolute;
+      inset: 0;
+      z-index: 5;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      pointer-events: none;
+    }
+
+    #app-card {
+      width: 880px;
+      padding: 44px 44px 36px;
+      overflow: hidden;
+      border: 1.5px solid #2e2e32;
+      border-radius: 32px;
+      background:
+        linear-gradient(135deg, rgba(255, 255, 255, 0.035), transparent 42%),
+        #1c1c1e;
+      box-shadow:
+        0 48px 140px rgba(0, 0, 0, 0.85),
+        0 0 0 1px rgba(255, 255, 255, 0.04);
+      will-change: transform, opacity;
+    }
+
+    #card-top-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 24px;
+      margin-bottom: 28px;
+    }
+
+    #app-icon {
+      width: 108px;
+      height: 108px;
+      flex-shrink: 0;
+      overflow: hidden;
+      border-radius: 24px;
+      filter: drop-shadow(0 8px 28px rgba(170, 232, 26, 0.5));
+      will-change: transform, opacity;
+    }
+
+    #app-icon img {
+      display: block;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    #card-info {
+      flex: 1;
+      padding-top: 4px;
+    }
+
+    #app-name {
+      margin-bottom: 8px;
+      color: #f5f0eb;
+      font-family: "Space Grotesk", Inter, sans-serif;
+      font-size: 36px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      will-change: transform, opacity;
+    }
+
+    #app-subtitle {
+      margin-bottom: 16px;
+      color: #8e8e93;
+      font-family: "Space Grotesk", Inter, sans-serif;
+      font-size: 22px;
+      font-weight: 400;
+      letter-spacing: -0.01em;
+      will-change: transform, opacity;
+    }
+
+    #app-stars {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transform-origin: left center;
+      will-change: transform, opacity;
+    }
+
+    #stars-glyphs {
+      color: #f5c518;
+      font-size: 26px;
+      letter-spacing: 2px;
+    }
+
+    #stars-count {
+      color: #9a9aa0;
+      font-family: "Space Grotesk", Inter, sans-serif;
+      font-size: 18px;
+      font-weight: 400;
+    }
+
+    #card-bottom-row {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+    }
+
+    #card-meta {
+      color: #9a9aa0;
+      font-family: "Space Grotesk", Inter, sans-serif;
+      font-size: 16px;
+      font-weight: 400;
+      line-height: 1.4;
+      will-change: opacity;
+    }
+
+    #get-btn {
+      position: relative;
+      display: flex;
+      min-width: 146px;
+      min-height: 58px;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      padding: 14px 36px;
+      border: 0;
+      border-radius: 22px;
+      background: #b1e81a;
+      pointer-events: none;
+      transform-origin: center;
+      will-change: transform, opacity, background-color;
+    }
+
+    .btn-label {
+      color: #000;
+      font-family: "Space Grotesk", Inter, sans-serif;
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      white-space: nowrap;
+    }
+
+    #btn-label-open {
+      position: absolute;
+      visibility: hidden;
+      opacity: 0;
+    }
+
+    #iap-note {
+      margin-top: 8px;
+      color: #9a9aa0;
+      font-family: "Space Grotesk", Inter, sans-serif;
+      font-size: 14px;
+      letter-spacing: 0.01em;
+      text-align: right;
+    }
+
+    /* Burst cards */
+    .news-card {
+      position: absolute;
+      z-index: 8;
+      width: 490px;
+      padding: 10px 10px 64px;
+      overflow: hidden;
+      border-radius: 6px;
+      background: #fff;
+      box-shadow:
+        0 32px 80px rgba(0, 0, 0, 0.78),
+        0 4px 20px rgba(0, 0, 0, 0.45),
+        inset 0 0 0 1px rgba(0, 0, 0, 0.05);
+      transform-style: preserve-3d;
+      will-change: transform, opacity;
+    }
+
+    .news-card img {
+      display: block;
+      width: 100%;
+      height: auto;
+      border-radius: 2px;
+    }
+
+    #nc1 {
+      top: 340px;
+      left: 40px;
+    }
+
+    #nc2 {
+      top: 340px;
+      left: 550px;
+    }
+
+    #nc3 {
+      top: 1200px;
+      left: 40px;
+    }
+
+    #nc4 {
+      top: 1200px;
+      left: 550px;
+    }
+
+    /* Full-width feed */
+    #scroll-wrap {
+      position: absolute;
+      z-index: 10;
+      inset: 0;
+      width: 1080px;
+      height: 1920px;
+      overflow: hidden;
+      pointer-events: none;
+    }
+
+    #scroll-track {
+      position: absolute;
+      top: 0;
+      left: 0;
+      display: flex;
+      width: 1080px;
+      flex-direction: column;
+      gap: 16px;
+      will-change: transform;
+    }
+
+    .scroll-img {
+      display: block;
+      width: 1080px;
+      height: auto;
+      flex-shrink: 0;
+    }
+
+    /* Fade and CTA */
+    #fade-overlay {
+      position: absolute;
+      z-index: 30;
+      inset: 0;
+      width: 1080px;
+      height: 1920px;
+      pointer-events: none;
+    }
+
+    #fade-grad {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 1080px;
+      height: 1420px;
+      background: linear-gradient(to top, #0d0d0d 56%, rgba(13, 13, 13, 0.95) 68%, transparent 100%);
+      opacity: 0;
+      will-change: opacity;
+    }
+
+    #cta-clip {
+      position: absolute;
+      z-index: 40;
+      inset: 0;
+      width: 1080px;
+      height: 1920px;
+      pointer-events: none;
+      will-change: opacity;
+    }
+
+    #cta-wrap {
+      display: flex;
+      width: 100%;
+      height: 100%;
+      align-items: center;
+      justify-content: center;
+    }
+
+    #cta-btn {
+      display: block;
+      padding: 32px 80px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      background: #caff5d;
+      box-shadow: 0 24px 70px rgba(0, 0, 0, 0.45);
+      color: #000;
+      font-family: Inter, "Helvetica Neue", Arial, sans-serif;
+      font-size: 42px;
+      font-weight: 500;
+      letter-spacing: -0.02em;
+      white-space: nowrap;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      #glow-ambient,
+      #glow-burst,
+      #app-card,
+      .news-card,
+      #scroll-track,
+      #fade-grad,
+      #cta-clip {
+        will-change: auto;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="stage-shell">
+    <main
+      id="root"
+      data-composition-id="main"
+      data-start="0"
+      data-duration="16.5"
+      data-width="1080"
+      data-height="1920"
+    >
+      <div id="bg-layer" class="clip" data-start="0" data-duration="16.5" data-track-index="0">
+        <div id="glow-ambient"></div>
+        <div id="glow-burst"></div>
+        <img
+          id="bg-watermark"
+          data-source="CP - logo sin fondo.png"
+          data-kind="watermark"
+          alt=""
+          aria-hidden="true"
+        />
+        <div id="hairline-top"></div>
+        <div id="hairline-bottom"></div>
+        <div class="corner-mark" id="cm-tl"></div>
+        <div class="corner-mark" id="cm-tr"></div>
+        <div class="corner-mark" id="cm-bl"></div>
+        <div class="corner-mark" id="cm-br"></div>
+      </div>
+
+      <div id="nc1" class="news-card clip" data-start="2.0" data-duration="2.2" data-track-index="2">
+        <img data-source="Captura de pantalla 2026-04-27 105241.png" data-kind="story" data-index="1" alt="" />
+      </div>
+      <div
+        id="nc2"
+        class="news-card clip"
+        data-start="2.0"
+        data-duration="2.7"
+        data-track-index="3"
+        data-layout-allow-overflow
+      >
+        <img data-source="Captura de pantalla 2026-04-27 105246.png" data-kind="story" data-index="2" alt="" />
+      </div>
+      <div id="nc3" class="news-card clip" data-start="2.0" data-duration="2.2" data-track-index="4">
+        <img data-source="Captura de pantalla 2026-04-27 105250.png" data-kind="story" data-index="3" alt="" />
+      </div>
+      <div id="nc4" class="news-card clip" data-start="2.0" data-duration="2.2" data-track-index="5">
+        <img data-source="Captura de pantalla 2026-04-27 105256.png" data-kind="story" data-index="4" alt="" />
+      </div>
+
+      <div
+        id="app-card-wrap"
+        class="clip"
+        data-start="0"
+        data-duration="4.5"
+        data-track-index="1"
+        data-layout-allow-overflow
+      >
+        <section id="app-card" aria-label="California Post app listing">
+          <div id="card-top-row">
+            <div id="app-icon">
+              <img data-source="./terminal.png" data-kind="icon" alt="California Post" />
+            </div>
+            <div id="card-info">
+              <h1 id="app-name">California Post</h1>
+              <p id="app-subtitle">California News &amp; Politics</p>
+              <div id="app-stars" aria-label="Five stars, 2.4 thousand ratings">
+                <span id="stars-glyphs" aria-hidden="true">★★★★★</span>
+                <span id="stars-count">2.4K Ratings</span>
+              </div>
+            </div>
+          </div>
+          <div id="card-bottom-row">
+            <div id="card-meta">Free<br />News</div>
+            <div>
+              <button id="get-btn" type="button" tabindex="-1">
+                <span id="btn-label-get" class="btn-label">GET</span>
+                <span id="btn-label-open" class="btn-label">OPEN ✓</span>
+              </button>
+              <div id="iap-note">In-App Purchases</div>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <div
+        id="scroll-wrap"
+        class="clip"
+        data-start="4.3"
+        data-duration="12.2"
+        data-track-index="6"
+        data-layout-allow-overflow
+      >
+        <div id="scroll-track">
+          <img class="scroll-img" data-source="Captura de pantalla 2026-04-27 105246.png" data-kind="story" data-index="2" alt="" />
+          <img class="scroll-img" data-source="Captura de pantalla 2026-04-27 105241.png" data-kind="story" data-index="1" alt="" />
+          <img class="scroll-img" data-source="Captura de pantalla 2026-04-27 105250.png" data-kind="story" data-index="3" alt="" />
+          <img class="scroll-img" data-source="Captura de pantalla 2026-04-27 105256.png" data-kind="story" data-index="4" alt="" />
+          <img class="scroll-img" data-source="Captura de pantalla 2026-04-27 105302.png" data-kind="story" data-index="5" alt="" />
+          <img class="scroll-img" data-source="Captura de pantalla 2026-04-27 105305.png" data-kind="story" data-index="6" alt="" />
+          <img class="scroll-img" data-source="Captura de pantalla 2026-04-27 105316.png" data-kind="story" data-index="7" alt="" />
+          <img class="scroll-img" data-source="Captura de pantalla 2026-04-27 105321.png" data-kind="story" data-index="8" alt="" />
+          <img class="scroll-img" data-source="Captura de pantalla 2026-04-27 105330.png" data-kind="story" data-index="9" alt="" />
+        </div>
+      </div>
+
+      <div id="fade-overlay" class="clip" data-start="7.0" data-duration="9.5" data-track-index="8">
+        <div id="fade-grad"></div>
+      </div>
+
+      <div id="cta-clip" class="clip" data-start="12.5" data-duration="4.0" data-track-index="9">
+        <div id="cta-wrap">
+          <div id="cta-btn">Launch Trading Terminal</div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    const STAGE_WIDTH = 1080;
+    const STAGE_HEIGHT = 1920;
+    const shell = document.getElementById("stage-shell");
+    const root = document.getElementById("root");
+
+    function fitStage() {
+      const scale = Math.min(window.innerWidth / STAGE_WIDTH, window.innerHeight / STAGE_HEIGHT);
+      const offsetX = (window.innerWidth - STAGE_WIDTH * scale) / 2;
+      const offsetY = (window.innerHeight - STAGE_HEIGHT * scale) / 2;
+      shell.style.transform = `translate(${offsetX}px, ${offsetY}px) scale(${scale})`;
+    }
+
+    function svgUrl(markup) {
+      return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(markup)}`;
+    }
+
+    function makeLogoSvg(watermark = false) {
+      const background = watermark ? "transparent" : "#E8201A";
+      const foreground = watermark ? "#E8201A" : "#FFFFFF";
+      return `
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1080 1080">
+          <rect width="1080" height="1080" rx="${watermark ? 0 : 230}" fill="${background}"/>
+          <path d="M230 240h620v145H385v310h465v145H230z" fill="${foreground}"/>
+          <path d="M690 385h160v310H690z" fill="${foreground}"/>
+          <circle cx="770" cy="275" r="72" fill="${foreground}"/>
+        </svg>
+      `;
+    }
+
+    const storyCopy = [
+      ["CALIFORNIA'S", "NEW POWER MAP", "The decisions reshaping the state start here."],
+      ["THE CITY", "MOVES WEST", "A closer look at the people changing California."],
+      ["INSIDE THE", "CAPITOL DEAL", "What happened after the cameras left."],
+      ["THE COAST", "AT A CROSSROADS", "Communities prepare for a different future."],
+      ["THE NEXT", "GOLD RUSH", "Technology, labor and the race for opportunity."],
+      ["HOUSING", "UNDER PRESSURE", "The numbers behind California's defining issue."],
+      ["A NEW ERA", "FOR LOS ANGELES", "How the region is rewriting its identity."],
+      ["THE BALLOT", "BEHIND THE VOTE", "The campaigns competing for attention."],
+      ["CALIFORNIA", "IN FULL COLOR", "News, politics and culture without the noise."]
+    ];
+
+    function makeStorySvg(index) {
+      const [eyebrow, headline, deck] = storyCopy[index - 1] || storyCopy[0];
+      const hue = 8 + index * 9;
+      const accent = index % 2 === 0 ? "#CAFF5D" : "#E8201A";
+      const number = String(index).padStart(2, "0");
+      return `
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1080 1350">
+          <defs>
+            <linearGradient id="g${index}" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0" stop-color="hsl(${hue} 78% 58%)"/>
+              <stop offset="0.48" stop-color="#48120F"/>
+              <stop offset="1" stop-color="#090909"/>
+            </linearGradient>
+            <linearGradient id="shade${index}" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0.45" stop-color="transparent"/>
+              <stop offset="1" stop-color="#090909"/>
+            </linearGradient>
+          </defs>
+          <rect width="1080" height="1350" fill="#F3EFE8"/>
+          <rect width="1080" height="118" fill="#E8201A"/>
+          <text x="54" y="78" fill="#FFF" font-family="Arial, sans-serif" font-size="48" font-weight="800" letter-spacing="-2">CALIFORNIA POST</text>
+          <text x="1018" y="76" text-anchor="end" fill="#FFF" font-family="Arial, sans-serif" font-size="28" font-weight="700">${number}</text>
+          <rect x="36" y="154" width="1008" height="665" fill="url(#g${index})"/>
+          <circle cx="${260 + index * 58}" cy="${360 + (index % 3) * 80}" r="${170 + index * 8}" fill="${accent}" opacity=".72"/>
+          <path d="M90 740 L450 300 L710 650 L930 250 L1044 650 L1044 819 L36 819 Z" fill="#0B0B0B" opacity=".52"/>
+          <rect x="36" y="154" width="1008" height="665" fill="url(#shade${index})"/>
+          <text x="54" y="895" fill="#E8201A" font-family="Arial, sans-serif" font-size="34" font-weight="800" letter-spacing="4">${eyebrow}</text>
+          <text x="54" y="1005" fill="#111" font-family="Arial, sans-serif" font-size="92" font-weight="900" letter-spacing="-4">${headline}</text>
+          <line x1="54" y1="1053" x2="1026" y2="1053" stroke="#111" stroke-width="5"/>
+          <text x="54" y="1126" fill="#333" font-family="Arial, sans-serif" font-size="34" font-weight="500">${deck}</text>
+          <text x="54" y="1264" fill="#777" font-family="Arial, sans-serif" font-size="26" font-weight="700" letter-spacing="2">NEWS  •  POLITICS  •  CULTURE</text>
+          <rect x="930" y="1203" width="96" height="96" fill="#111"/>
+          <path d="M952 1228h52v15h-37v25h37v15h-52z" fill="#FFF"/>
+        </svg>
+      `;
+    }
+
+    function hydrateImages() {
+      document.querySelectorAll("img[data-source]").forEach((image) => {
+        const kind = image.dataset.kind;
+        const fallback = kind === "story"
+          ? makeStorySvg(Number(image.dataset.index))
+          : makeLogoSvg(kind === "watermark");
+
+        image.src = svgUrl(fallback);
+
+        const source = image.dataset.source;
+        const probe = new Image();
+        probe.onload = () => {
+          image.src = source;
+        };
+        probe.src = source;
+      });
+    }
+
+    hydrateImages();
+    fitStage();
+    window.addEventListener("resize", fitStage, { passive: true });
+
+    window.__timelines = window.__timelines || {};
+    const tl = gsap.timeline({ paused: true });
+
+    tl.addLabel("intro", 0);
+    tl.fromTo(
+      "#glow-ambient",
+      { scale: 1 },
+      { scale: 1.38, duration: 1.5, ease: "sine.inOut", yoyo: true, repeat: 10 },
+      "intro"
+    );
+    tl.fromTo("#hairline-top", { scaleX: 0 }, { scaleX: 1, duration: 0.8, ease: "power2.out" }, 0.2);
+    tl.fromTo("#hairline-bottom", { scaleX: 0 }, { scaleX: 1, duration: 0.75, ease: "expo.out" }, 0.35);
+    tl.fromTo(
+      "#glow-burst",
+      { scale: 0.4, autoAlpha: 0 },
+      { scale: 2.2, autoAlpha: 0.75, duration: 0.13, ease: "power3.out" },
+      2
+    );
+    tl.to("#glow-burst", { scale: 3.2, autoAlpha: 0, duration: 0.65, ease: "expo.out" }, 2.13);
+
+    tl.fromTo(
+      "#app-card",
+      { y: -1100, scale: 0.55, autoAlpha: 0 },
+      { y: 0, scale: 1, autoAlpha: 1, duration: 0.78, ease: "elastic.out(1, 0.52)" },
+      0.15
+    );
+    tl.fromTo(
+      "#app-icon",
+      { scale: 0, autoAlpha: 0 },
+      { scale: 1, autoAlpha: 1, duration: 0.42, ease: "back.out(2.4)" },
+      0.38
+    );
+    tl.fromTo(
+      "#app-name",
+      { x: -28, autoAlpha: 0 },
+      { x: 0, autoAlpha: 1, duration: 0.36, ease: "power3.out" },
+      0.54
+    );
+    tl.fromTo(
+      "#app-subtitle",
+      { y: 14, autoAlpha: 0 },
+      { y: 0, autoAlpha: 1, duration: 0.3, ease: "power2.out" },
+      0.7
+    );
+    tl.fromTo(
+      "#app-stars",
+      { scale: 0, autoAlpha: 0 },
+      { scale: 1, autoAlpha: 1, duration: 0.55, ease: "elastic.out(1, 0.65)" },
+      0.85
+    );
+    tl.fromTo(
+      "#get-btn",
+      { scale: 0, autoAlpha: 0 },
+      { scale: 1, autoAlpha: 1, duration: 0.42, ease: "back.out(2.6)" },
+      1
+    );
+    tl.fromTo("#card-meta", { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.3, ease: "power2.out" }, 1.1);
+
+    tl.addLabel("install", 1.8);
+    tl.to("#get-btn", { scaleY: 0.66, scaleX: 1.22, duration: 0.09, ease: "power3.in" }, "install");
+    tl.to("#app-card", { y: -10, duration: 0.09, ease: "power2.out" }, "install");
+    tl.to(
+      "#get-btn",
+      {
+        scaleY: 1,
+        scaleX: 1,
+        backgroundColor: "#3a3a3c",
+        duration: 0.42,
+        ease: "back.out(3.2)",
+        overwrite: "auto"
+      },
+      1.89
+    );
+    tl.to("#app-card", { y: 0, duration: 0.3, ease: "back.out(2.2)", overwrite: "auto" }, 1.89);
+    tl.set("#btn-label-get", { autoAlpha: 0 }, 1.94);
+    tl.set("#btn-label-open", { autoAlpha: 1 }, 1.94);
+
+    tl.addLabel("burst", 2);
+    tl.fromTo(
+      "#nc1",
+      { x: 255, y: 430, scale: 0.07, autoAlpha: 0, rotation: 0, transformPerspective: 900, rotationY: 0, rotationX: 0 },
+      { x: 0, y: 0, scale: 1, autoAlpha: 1, rotation: -720, rotationY: 18, rotationX: -12, duration: 0.88, ease: "expo.out" },
+      "burst"
+    );
+    tl.fromTo(
+      "#nc2",
+      { x: -255, y: 430, scale: 0.07, autoAlpha: 0, rotation: 0, transformPerspective: 900, rotationY: 0, rotationX: 0 },
+      { x: 0, y: 0, scale: 1, autoAlpha: 1, rotation: 720, rotationY: -22, rotationX: 10, duration: 0.82, ease: "expo.out" },
+      "burst"
+    );
+    tl.fromTo(
+      "#nc3",
+      { x: 255, y: -430, scale: 0.07, autoAlpha: 0, rotation: 0, transformPerspective: 900, rotationY: 0, rotationX: 0 },
+      { x: 0, y: 0, scale: 1, autoAlpha: 1, rotation: -720, rotationY: 16, rotationX: 14, duration: 0.94, ease: "expo.out" },
+      "burst"
+    );
+    tl.fromTo(
+      "#nc4",
+      { x: -255, y: -430, scale: 0.07, autoAlpha: 0, rotation: 0, transformPerspective: 900, rotationY: 0, rotationX: 0 },
+      { x: 0, y: 0, scale: 1, autoAlpha: 1, rotation: 720, rotationY: -18, rotationX: -14, duration: 0.79, ease: "expo.out" },
+      "burst"
+    );
+
+    tl.addLabel("expand", 3.3);
+    tl.to("#nc1", { autoAlpha: 0, y: -44, duration: 0.45, ease: "power2.in" }, "expand");
+    tl.to("#nc3, #nc4", { autoAlpha: 0, y: 44, duration: 0.45, ease: "power2.in" }, "expand");
+    tl.to("#app-card", { y: 1350, autoAlpha: 0, duration: 0.52, ease: "power2.in" }, "expand");
+    tl.set("#nc2", { zIndex: 100 }, "expand");
+    tl.to(
+      "#nc2",
+      {
+        x: -550,
+        y: -340,
+        width: 1080,
+        padding: 0,
+        borderRadius: 0,
+        rotation: 0,
+        rotationY: 0,
+        rotationX: 0,
+        duration: 0.9,
+        ease: "expo.out"
+      },
+      "expand"
+    );
+
+    tl.set("#scroll-track", { y: 2000 }, 0);
+    tl.addLabel("handoff", 4.3);
+    tl.set("#scroll-track", { y: 0 }, "handoff");
+    tl.to("#nc2", { autoAlpha: 0, duration: 0.3, ease: "none" }, "handoff");
+    tl.to("#scroll-track", { y: -550, duration: 2, ease: "none" }, 4.6);
+
+    tl.addLabel("fast-scroll", 6.6);
+    tl.to(
+      "#scroll-track",
+      { y: -9500, duration: 7.2, ease: "power3.in", overwrite: "auto" },
+      "fast-scroll"
+    );
+    tl.fromTo("#fade-grad", { autoAlpha: 0 }, { autoAlpha: 1, duration: 4.5, ease: "power2.in" }, 7);
+
+    tl.addLabel("cta", 12.5);
+    tl.fromTo(
+      "#cta-clip",
+      { autoAlpha: 0 },
+      { autoAlpha: 1, duration: 0.6, ease: "power2.out" },
+      "cta"
+    );
+    tl.fromTo(
+      "#cta-btn",
+      { y: 36, scale: 0.94 },
+      { y: 0, scale: 1, duration: 0.72, ease: "back.out(1.6)" },
+      "cta"
+    );
+
+    window.__timelines["main"] = tl;
+
+    const params = new URLSearchParams(window.location.search);
+    const seekValue = Number(params.get("seek"));
+    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    root.style.opacity = "1";
+
+    if (reduceMotion) {
+      tl.progress(1).pause();
+    } else if (params.has("seek") && Number.isFinite(seekValue)) {
+      tl.seek(Math.max(0, Math.min(16.5, seekValue))).pause();
+    } else {
+      tl.play(0);
+    }
+  </script>
+</body>
+</html>

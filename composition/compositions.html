@@ -1,0 +1,12 @@
+<template id="untitled-template">
+  <div data-composition-id="untitled" data-width="100" data-height="100" style="background:#000;position:relative;width:100px;height:100px;overflow:hidden">
+    <img src="assets/terminal.png" style="width:100%;height:100%;object-fit:contain;background:#000" />
+    <script>
+      window.__timelines = window.__timelines || {};
+      const tl = gsap.timeline({ paused: true });
+      const TARGET_DURATION = 5;
+      if (tl.duration() < TARGET_DURATION) tl.set({}, {}, TARGET_DURATION);
+      window.__timelines["untitled"] = tl;
+    </script>
+  </div>
+</template>
